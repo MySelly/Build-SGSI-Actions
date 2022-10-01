@@ -6,11 +6,11 @@ on:
       ROM_URL:
         description: 'ROM link'
         required: true
-        default: 'https://versaweb.dl.sourceforge.net/project/xiaomi-eu-multilang-miui-roms/xiaomi.eu/MIUI-WEEKLY-RELEASES/22.8.10/xiaomi.eu_multi_HMNote94G_HM9T_22.8.10_v13-12.zip'
+        default: 'https://bigota.d.miui.com/V12.5.10.0.RGGINXM/miui_BEGONIAININGlobal_V12.5.10.0.RGGINXM_4716f60949_11.0.zip'
       ZIP_NAME:
         description: 'ZIP name (The name of the file which you just put link above.)'
         required: true
-        default: 'xiaomi.eu_multi_HMNote94G_HM9T_22.8.10_v13-12.zip'
+        default: 'miui_BEGONIAININGlobal_V12.5.10.0.RGGINXM_4716f60949_11.0.zip'
       OS_TYPE:
         description: 'OS type (Generic, Pixel, MIUI, Flyme, ColorOS, RogUI, JoyUI, VOS, Nubia, Moto, MyOS, OxygenOS, RedMagicOS)'
         required: true
@@ -38,16 +38,16 @@ jobs:
           
       - name: Cloning the SGSI tool‌‌...
         run: |
-          git clone --recurse-submodules https://github.com/As9124k82134/sGSI-tool.git -b main sgsi-12
+          git clone --recurse-submodules https://github.com/As9124k82134/sGSI-tool.git -b main11 sgsi-11
 
       - name: Setting up tool environment...
-        working-directory: sgsi-12
+        working-directory: sgsi-11
         run: |
           sudo bash setup.sh
           sudo apt-get -y --purge remove "adoptopenjdk-11-hotspot"
 
       - name: Building SGSI...
-        working-directory: sgsi-12
+        working-directory: sgsi-11
         run: |
           if [ "${{ github.event.inputs.OS_TYPE }}" == "Generic" ]; then
           sudo bash url2SGSI.sh "${{ github.event.inputs.ROM_URL }}" "Generic":"${{ github.event.inputs.ROM_NAME }}"
@@ -58,14 +58,14 @@ jobs:
           fi
           
       - name: Repack output file...
-        working-directory: sgsi-12
+        working-directory: sgsi-11
         run: |
           sudo chmod -R 777 output ; cd output
           gzip -qf5 *img
           sudo rm -rf *.img          
           
       - name: Uploading SGSI to PixelDrain...
-        working-directory: sgsi-12/output
+        working-directory: sgsi-11/output
         run: |
           wget -q https://raw.githubusercontent.com/MrErenK/pdup/master/pdup && sudo chmod +x pdup
           ./pdup *.img.gz
