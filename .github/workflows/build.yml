@@ -1,0 +1,71 @@
+name: build sgsi
+
+on:
+  workflow_dispatch:
+    inputs:
+      ROM_URL:
+        description: 'ROM link'
+        required: true
+        default: 'https://versaweb.dl.sourceforge.net/project/xiaomi-eu-multilang-miui-roms/xiaomi.eu/MIUI-WEEKLY-RELEASES/22.8.10/xiaomi.eu_multi_HMNote94G_HM9T_22.8.10_v13-12.zip'
+      ZIP_NAME:
+        description: 'ZIP name (The name of the file which you just put link above.)'
+        required: true
+        default: 'xiaomi.eu_multi_HMNote94G_HM9T_22.8.10_v13-12.zip'
+      OS_TYPE:
+        description: 'OS type (Generic, Pixel, MIUI, Flyme, ColorOS, RogUI, JoyUI, VOS, Nubia, Moto, MyOS, OxygenOS, RedMagicOS)'
+        required: true
+        default: 'MIUI'
+      ROM_NAME:
+        description: 'Rom name, only for *Generic* ROMS. (Supported names:  AncientOS, ArcanaOS, ArrowOS, AwakenOS, AEX, BlissOS, BlazeOS, CorvusOS, ColtOS, CipherOS, crDroid, CherishOS, DotOS, DescendantOS, DerpfestOS, ElytraOS, ElixirOS, EvolutionX, ExthmUI, FluidOS, HavocOS, LineageOS, MagnusOS, NusantaraOS, OctaviOS, PixelExperience, ParanoidOS, PixelExtended, PixelOS, PPUI, POSP, Project404, PalladiumOS, RadiantOS, riceDroid, SparkOS, SakuraOS, SyberiaOS, StagOS, ShapeshiftOS, SuperiorOS, VoidUI, VoltageOS, xDroid, Xtended, YaapOS)'
+        required: false
+        default: ''
+      REPACK_NAME:
+        description: 'Repack name (OutPut file name.)'
+        required: false
+        default: 'SGSI'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Get the source code of this repository...
+        uses: actions/checkout@main
+
+      - name: Preparing stuff...
+        run: |
+          sudo apt update && sudo apt-get install -y git unzip curl aria2 expect
+          
+      - name: Cloning the SGSI tool‌‌...
+        run: |
+          git clone --recurse-submodules https://github.com/As9124k82134/sGSI-tool.git -b main sgsi-12
+
+      - name: Setting up tool environment...
+        working-directory: sgsi-12
+        run: |
+          sudo bash setup.sh
+          sudo apt-get -y --purge remove "adoptopenjdk-11-hotspot"
+
+      - name: Building SGSI...
+        working-directory: sgsi-12
+        run: |
+          if [ "${{ github.event.inputs.OS_TYPE }}" == "Generic" ]; then
+          sudo bash url2SGSI.sh "${{ github.event.inputs.ROM_URL }}" "Generic":"${{ github.event.inputs.ROM_NAME }}"
+          elif [ "${{ github.event.inputs.OS_TYPE }}" == "generic" ]; then
+          sudo bash url2SGSI.sh "${{ github.event.inputs.ROM_URL }}" "Generic":"${{ github.event.inputs.ROM_NAME }}"
+          else
+          sudo bash url2SGSI.sh "${{ github.event.inputs.ROM_URL }}" "${{ github.event.inputs.OS_TYPE }}":"${{ github.event.inputs.REPACK_NAME }}"
+          fi
+          
+      - name: Repack output file...
+        working-directory: sgsi-12
+        run: |
+          sudo chmod -R 777 output ; cd output
+          gzip -qf5 *img
+          sudo rm -rf *.img          
+          
+      - name: Uploading SGSI to PixelDrain...
+        working-directory: sgsi-12/output
+        run: |
+          wget -q https://raw.githubusercontent.com/MrErenK/pdup/master/pdup && sudo chmod +x pdup
+          ./pdup *.img.gz
