@@ -48,7 +48,7 @@ jobs:
       - name: Building SGSI...
         working-directory: sgsi-12
         run: |
-          if [ echo $(echo "${{ github.event.inputs.OS_TYPE }}" | tr '[:lower:]' '[:upper:]') == "generic" ]; then
+          if [ "$(echo "${{ github.event.inputs.OS_TYPE }}" | tr '[:upper:]' '[:lower:]')" == "generic" ]; then
           sudo bash url2SGSI.sh "${{ github.event.inputs.ROM_URL }}" "Generic":"${{ github.event.inputs.ROM_NAME }}"
           else
           sudo bash url2SGSI.sh "${{ github.event.inputs.ROM_URL }}" "${{ github.event.inputs.OS_TYPE }}":"${{ github.event.inputs.REPACK_NAME }}"
